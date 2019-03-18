@@ -1,9 +1,26 @@
+---
+title: "Lab3 Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
 library(ggplot2)
+library(fit.models)
 library('reshape2')
 library(robust)
-library(rlm)
 library("MASS")
+```
 
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+```{r}
 #Exercice 1 Summary statistics
 set.seed(123)
 datas <- rt(15, 1)
@@ -22,12 +39,9 @@ median(datas)
 mean(datas, trim = 0.2)
 #Or the standart Deviation
 sd(datas)
+```
 
-#Exercice 2 Detect outliers
-
-#Elle l'a pas fait et est parti direct sur l'exo 3 mais il faut le faire
-
-
+```{r}
 # Exercice3 ----------------------------------------------------------------------
 
 #Briefly describe the dataset.p
@@ -56,22 +70,17 @@ ggplot(dfStarWars, aes(x = height, y = mass)) + geom_point() + ggtitle("Height v
 #Fit two different regression models. Plot and discuss the results. Useful: lmrob or MASS::rlm
 sub <- subset(dfStarWars, select=c(mass,height))
 lmRegression <- lm(sub)
-rlmRegression <- rlm(sub)
+#rlmRegression <- rlm(sub)
 lmRobRegression <- lmRob(data = sub)
 print(lmRegression)
-print(rlmRegression)
+#print(rlmRegression)
 print(lmRobRegression)
-prediction <- predict(linearRegression, sub['height'])
-Robustprediction <- predict(linearRegression, sub['height'])
+prediction <- predict(lmRegression, sub['height'])
+Robustprediction <- predict(lmRobRegression, sub['height'])
 heightAndMassGraph <- ggplot(dfStarWars, aes(x = height, y = mass))
 heightAndMassGraph <- heightAndMassGraph + geom_point(, position = "jitter") 
 heightAndMassGraph <- heightAndMassGraph + ggtitle("Height vs Mass")+geom_smooth(method = rlm, color = 'blue')
 heightAndMassGraph + geom_smooth(method = lm, color = 'red', fill = 'green')
 
-#Exercice1
-set.seed(123)
-x = rt(15, 1)
-mean(x)
-mean(x, trim = 0.2)
-median(x)
-sd(x)
+```
+
