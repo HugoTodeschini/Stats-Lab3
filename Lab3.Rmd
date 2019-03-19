@@ -10,9 +10,11 @@ Try executing this chunk by clicking the *Run* button within the chunk or by pla
 ```{r}
 library(ggplot2)
 library(fit.models)
+library(tidyr)
 library('reshape2')
 library(robust)
 library("MASS")
+library("jpeg")
 ```
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
@@ -40,7 +42,6 @@ mean(datas, trim = 0.2)
 #Or the standart Deviation
 sd(datas)
 ```
-
 ```{r}
 # Exercice3 ----------------------------------------------------------------------
 
@@ -56,10 +57,12 @@ dfStarWars <- dplyr::starwars
 
 summary(dfStarWars['height'])
 summary(dfStarWars['mass'])
-
+```
+```{r}
 ggplot(dfStarWars, aes(x = height)) + geom_density() + ggtitle("Height density")
 ggplot(dfStarWars, aes(x = mass)) + geom_density() + ggtitle("Mass density") + scale_x_log10()
-
+```
+```{r}
 #Plot mass vs height and describe it
 ggplot(dfStarWars, aes(x = height, y = mass)) + geom_point() + ggtitle("Height vs Mass")
 
@@ -68,19 +71,42 @@ ggplot(dfStarWars, aes(x = height, y = mass)) + geom_point() + ggtitle("Height v
 #We have an extreme outlier (1000kg and 175cm) which correspond to Jabba
 
 #Fit two different regression models. Plot and discuss the results. Useful: lmrob or MASS::rlm
-sub <- subset(dfStarWars, select=c(mass,height))
+sub <- subset(dfStarWars, select=c(mass,height,name))
+sub <- drop_na(sub)
 lmRegression <- lm(sub)
-#rlmRegression <- rlm(sub)
-lmRobRegression <- lmRob(data = sub)
+rlmRegression <- rlm(x = as.numeric(unlist(sub['mass'])) ,y = as.numeric(unlist(sub['height'])))
+```
+```{r}
 print(lmRegression)
-#print(rlmRegression)
-print(lmRobRegression)
-prediction <- predict(lmRegression, sub['height'])
-Robustprediction <- predict(lmRobRegression, sub['height'])
+summary(rlmRegression)
+```
+
+```{r}
 heightAndMassGraph <- ggplot(dfStarWars, aes(x = height, y = mass))
-heightAndMassGraph <- heightAndMassGraph + geom_point(, position = "jitter") 
+heightAndMassGraph <- heightAndMassGraph + geom_point(position = "jitter") 
 heightAndMassGraph <- heightAndMassGraph + ggtitle("Height vs Mass")+geom_smooth(method = rlm, color = 'blue')
 heightAndMassGraph + geom_smooth(method = lm, color = 'red', fill = 'green')
-
+```
+We see that the robust regression in blue is further the outlier point. So this model is less affected by as expected outliers
+The confidence interval in green is for the lm model.
+```{r}
+weights <- data.frame(rlmRegression['w'])
+print(weights)
+```
+We have a lot points which have a weight of 1 M-estimators of 1 some. 6 points have a weight between 0.7 and 1 and we have one point whith a weight of 0.03. We will plot them with different colors.
+```{r}
+sub['weight'] = weights
+WeightMGraph  <- ggplot(sub, aes(x = height, y = mass, color = weight))
+WeightMGraph + geom_point()
+```
+We can see that it is the outlier point which have the lowest weight value.
+```{r}
+print(sub[which.min(sub$weight),])
+```
+The outlier point is Jabba Desilijic Tiure as expected
+```{r}
+jj <- readJPEG("personnage-jabba-the-hutt.jpg",native=TRUE)
+plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)
+rasterImage(jj,0,0,1,1)
 ```
 
