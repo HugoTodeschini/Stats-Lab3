@@ -105,8 +105,40 @@ print(sub[which.min(sub$weight),])
 ```
 The outlier point is Jabba Desilijic Tiure as expected
 ```{r}
-jj <- readJPEG("personnage-jabba-the-hutt.jpg",native=TRUE)
+JabbaImage <- readJPEG("personnage-jabba-the-hutt.jpg",native=TRUE)
 plot(0:1,0:1,type="n",ann=FALSE,axes=FALSE)
-rasterImage(jj,0,0,1,1)
+rasterImage(JabbaImage,0,0,1,1)
 ```
+```{r}
+sub <- sub[-which.min(sub$weight),] # On supprime la ligne de Jabba
+```
+We redo the same thing without Jabba
+```{r}
+sub <- subset(sub, select=c(mass,height,name))
+lmRegression <- lm(sub)
+rlmRegression <- rlm(x = as.numeric(unlist(sub['mass'])) ,y = as.numeric(unlist(sub['height'])))
+heightAndMassGraph <- ggplot(sub, aes(x = height, y = mass))
+heightAndMassGraph <- heightAndMassGraph + geom_point(position = "jitter") 
+heightAndMassGraph <- heightAndMassGraph + ggtitle("Height vs Mass")+geom_smooth(method = rlm, color = 'blue')
+heightAndMassGraph + geom_smooth(method = lm, color = 'red', fill = 'green')
+```
+```{r}
+weights <- data.frame(rlmRegression['w'])
+print(weights)
+```
+```{r}
+sub['weight'] = weights
+WeightMGraph  <- ggplot(sub, aes(x = height, y = mass, color = weight))
+WeightMGraph + geom_point()
+```
+```{r}
+print(sub[which.min(sub$weight),])
+```
+The new character with the lowest weight is the general Grievous
+```{r}
+newdata=data.frame("name"="Luke Skywalker", "mass", "height" = 170)
+result=predict(lmRegression,newdata)
+print(result)
+```
+According to our model a 1m70 character will do 72.3 kg
 
