@@ -1,6 +1,9 @@
 ---
 title: "Lab3 Notebook"
-output: html_notebook
+output:
+  pdf_document:
+    toc: true
+    number_sections: true
 ---
 
 This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
@@ -15,6 +18,8 @@ library('reshape2')
 library(robust)
 library("MASS")
 library("jpeg")
+library(tclust, quietly = TRUE)
+library(EMCluster, quietly = TRUE)
 ```
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
@@ -23,7 +28,7 @@ When you save the notebook, an HTML file containing the code and output will be 
 
 The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
 ```{r}
-#Exercice 1 Summary statistics
+# Exercice1 ----------------------------------------------------------------------
 set.seed(123)
 datas <- rt(15, 1)
 mean(datas) #23.03012
@@ -149,3 +154,41 @@ print(result)
 ```
 According to our model a 1m70 character will do 72.3 kg
 
+```{r}
+# Exercice4 ----------------------------------------------------------------------
+x1 = mvrnorm(n = 20, 2, 0.1, tol = 1e-06, empirical = FALSE)
+y1 = mvrnorm(n = 20, 2, 0.1, tol = 1e-06, empirical = FALSE)
+x2 = mvrnorm(n = 20, 2, 0.1, tol = 1e-06, empirical = FALSE)
+y2 = mvrnorm(n = 20, -4, 0.1, tol = 1e-06, empirical = FALSE)
+x3 = mvrnorm(n = 20, -1, 0.1, tol = 1e-06, empirical = FALSE)
+y3 = mvrnorm(n = 20, 3, 0.1, tol = 1e-06, empirical = FALSE)
+xUniform = round(runif(25, min=-5, max=5), digits=2)
+yUniform = round(runif(25, min=-5, max=5), digits=2)
+label = c(rep("1",20),rep("2",20),rep("3",20),rep("4",25))
+
+df = data.frame("X" = c(x1,x2,x3,xUniform), "Y" = c(y1,y2,y3,yUniform),"label" = label)
+ggplot(df, aes(x = X, y = Y,color = label)) + geom_point() + ggtitle("Datas with their labels") 
+```
+We create a data set with 3 rectangles where 15 points are normally distributed and 20 other points uniformely distributed.
+```{r}
+clusters <- hclust(dist(df[, 1:2]))
+print(clusters)
+clusterCut <- cutree(clusters, 4)
+print(clusterCut)
+clusterCut<- as.character(clusterCut)
+dfCluster = data.frame("X" = c(x1,x2,x3,xUniform), "Y" = c(y1,y2,y3,yUniform),"label2" = clusterCut)
+ggplot(dfCluster, aes(x = X, y = Y,color = label2)) + geom_point() + ggtitle("Datas with their cluster for the tclust method")
+```
+
+```{r}
+emobj <- simple.init(df[, 1:2], nclass = 4)
+emobj <- shortemcluster(df[, 1:2], emobj)
+summary(emobj)
+
+ret <- emcluster(df[, 1:2], emobj, assign.class = TRUE)
+clusterPredict <- ret$class
+clusterPredict<- as.character(clusterPredict)
+dfCluster = data.frame("X" = c(x1,x2,x3,xUniform), "Y" = c(y1,y2,y3,yUniform),"label3" = clusterPredict)
+ggplot(dfCluster, aes(x = X, y = Y,color = label3)) + geom_point() + ggtitle("Datas with their cluster for the tclust method")
+```
+The second algorithm has bad results. He is not able to distinguish two clusters which are cleary separated. Whereas the robust algorithm has issues only on the points generates uniformally.
