@@ -43,6 +43,13 @@ mean(datas, trim = 0.2)
 sd(datas)
 ```
 ```{r}
+# Exercice2 ----------------------------------------------------------------------
+toyData = data.frame('x' = c(1,2,3,2,0,3,4,1,2,3,0,1,2,2,3,0,3,3,4,3,3,4,5))
+ggplot(toyData, aes(x = '', y=x)) + 
+  geom_boxplot()
+```
+Here we have a dataset with values between 0 and 4 and one data equal to 5. 5 is an outlier but it is not shown by the boxplot.
+```{r}
 # Exercice3 ----------------------------------------------------------------------
 
 #Briefly describe the dataset.p
